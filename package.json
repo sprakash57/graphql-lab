@@ -1,7 +1,7 @@
 {
-  "name": "graphql-lab",
-  "version": "1.0.0",
-  "description": "A perfect refreshar to brush up your graphQL concepts",
+  "name": "graphql-blog",
+  "version": "0.9.0",
+  "description": "Blog prototype built with graphQL APIs",
   "main": "index.js",
   "scripts": {
     "start": "nodemon src/index.js --ext js,graphql --exec babel-node",
