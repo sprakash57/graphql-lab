@@ -49,6 +49,7 @@ type Mutation {
     deletePost(id: ID!): Post!
     createComment(data: CreateComment!): Comment!
     updateComment(id: ID!, data: UpdateComment!): Comment!
+    deleteComment(id: ID!): Comment!
 }
 
 type User {
@@ -77,5 +78,22 @@ type Comment {
 }
 
 type Subscription {
-    comment(postId: ID!): Comment!
+    comment(postId: ID!): CommentSubscriptionPayload!
+    post: PostSubscriptionPayload!
+}
+
+enum MutationType {
+    CREATED
+    UPDATED
+    DELETED
+}
+
+type PostSubscriptionPayload {
+    mutation: MutationType!
+    data: Post!
+}
+
+type CommentSubscriptionPayload {
+    mutation: MutationType!
+    data: Comment!
 }

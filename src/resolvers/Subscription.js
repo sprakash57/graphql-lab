@@ -8,6 +8,9 @@ const Subscription = {
                 throw new Error('Post not found')
             }
         }
+    },
+    post: {
+        subscribe: (parent, args, { pubsub }, info) => pubsub.asyncIterator('post')
     }
 }
 

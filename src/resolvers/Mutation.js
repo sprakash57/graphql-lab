@@ -39,38 +39,65 @@ const Mutation = {
             throw new Error('User not found');
         }
     },
-    createPost: (parent, args, { db }, info) => {
+    createPost: (parent, args, { db, pubsub }, info) => {
         let post = {};
-        if (db.users.some(u => u.id === args.data.author)) {
+        if (db.users.some(u => u.id === +args.data.author)) {
             post = { id: Date.now().toString(), ...args.data }
             db.posts.push(post);
+            if (args.data.published) pubsub.publish('post', {
+                post: { mutation: 'CREATED', data: post }
+            });
+            return post;
         } else {
             throw new Error("User does not exist!")
         }
-        return post;
     },
-    updatePost: (parent, args, { db }, info) => {
+    updatePost: (parent, args, { db, pubsub }, info) => {
         let updatedPost = {};
         const { id, data } = args;
         const post = db.posts.find(p => p.id === +id);
+        const originalPost = { ...post };
         if (post) {
-            updatedPost = post;
+            updatedPost = { ...post };
             if (typeof data.title === 'string') updatedPost.title = data.title;
-            if (typeof data.published === 'boolean') updatedPost.published = data.published;
+            if (typeof data.published === 'boolean') {
+                if (originalPost.published && !data.published) {
+                    //deleted
+                    pubsub.publish('post', {
+                        post: { mutation: 'DELETED', data: originalPost }
+                    })
+                } else if (!originalPost.published && data.published) {
+                    //created
+                    pubsub.publish('post', {
+                        post: { mutation: 'CREATED', data: updatedPost }
+                    })
+                }
+                updatedPost.published = data.published
+            } else if (data.published === true) {
+                //updated
+                pubsub.publish('post', {
+                    post: { mutation: 'UPDATED', data: updatedPost }
+                })
+            }
             if (typeof data.body === 'string') updatedPost.body = data.body;
             return updatedPost;
         } else {
             throw new Error('Post does not exist');
         }
     },
-    deletePost: (parent, args, { db }) => {
+    deletePost: (parent, args, { db, pubsub }) => {
         const post = db.posts.find(p => p.id === +args.id);
         if (!post) throw new Error('Post does not exist');
         db.posts = db.posts.filter(p => p.id !== post.id);
         db.comments = db.comments.filter(c => c.postId !== post.id);
+        if (!post.published) {
+            pubsub.publish('post', {
+                post: { mutation: 'DELETED', data: post }
+            })
+        }
         return post;
     },
-    createComment: (parent, args, { db, pubsub }) => {
+    createComment: (parent, args, { db, pubsub }, info) => {
         let comment = {}
         const hasAuther = db.users.some(u => u.id === +args.data.author);
         const hasPost = db.posts.some(p => p.id === +args.data.postId);
@@ -79,21 +106,31 @@ const Mutation = {
         } else {
             throw new Error('Valid user and post required');
         }
-        console.log(comment);
         db.comments.push(comment);
-        pubsub.publish(`comment ${args.data.postId}`, { comment });
+        pubsub.publish(`comment ${args.data.postId}`, { comment: { mutation: 'CREATED', data: comment } });
         return comment;
     },
-    updateComment: (parent, args, { db }) => {
+    updateComment: (parent, args, { db, pubsub }) => {
         let updatedComment = {};
         const { id, data } = args;
-        const comment = db.comments.find(c => c.id === +id);
+        const comment = db.comments.find(c => c.id == id);
         if (comment) {
             updatedComment = comment;
             if (typeof data.text === 'string') updatedComment.text = data.text;
-            return updatedComment;
         } else {
             throw new Error('Comment does not exist');
+        }
+        pubsub.publish(`comment ${comment.postId}`, { comment: { mutation: 'UPDATED', data: updatedComment } });
+        return updatedComment;
+    },
+    deleteComment: (parent, { id }, { db, pubsub }) => {
+        const comment = db.comments.find(c => c.id == id);
+        if (comment) {
+            pubsub.publish(`comment ${comment.postId}`, { comment: { mutation: 'DELETED', data: comment } });
+            db.comments = db.comments.filter(c => c.id != id);
+            return comment;
+        } else {
+            throw new Error('Comment not found');
         }
     }
 }
