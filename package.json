@@ -1,30 +1,16 @@
 {
-  "name": "graphql-blog",
-  "version": "0.9.0",
-  "description": "Blog prototype built with graphQL APIs",
+  "name": "payvent-server",
+  "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/index.js --ext js,graphql --exec babel-node",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sprakash57/graphql-lab.git"
-  },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/sprakash57/graphql-lab/issues"
-  },
-  "homepage": "https://github.com/sprakash57/graphql-lab#readme",
   "dependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "graphql-yoga": "^1.18.3"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.3"
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "firebase-admin": "^12.3.0"
   }
 }
