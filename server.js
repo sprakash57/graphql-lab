@@ -7,11 +7,11 @@ const port = 5002;
 
 app.use(cors());
 
-app.use(middleware.decodeToken);
-
 app.get("/api/health", (req, res) => {
   return res.send("OK");
 });
+
+app.use(middleware.decodeToken);
 
 app.get("/api/profile", (req, res) => {
   console.log("api calling...");
